@@ -1,0 +1,18 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+
+[Serializable]
+public class TouchLocation
+{
+    public int TouchId;
+    public GameObject Box;
+
+    public TouchLocation(int _TouchId, GameObject _Box)
+    {
+        TouchId = _TouchId;
+        Box = _Box;
+    }
+}
