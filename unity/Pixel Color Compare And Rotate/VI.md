@@ -1,1 +1,1 @@
-https://github.com/jeedong97/dong-study/issues/3
+<https://github.com/jeedong97/dong-study/issues/3>
