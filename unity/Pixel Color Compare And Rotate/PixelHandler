@@ -1,0 +1,37 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class PixelHandler : MonoBehaviour
+{
+    public Image Img;
+    public RectTransform RT;
+    public CanvasGroup CG;
+    public bool isOn;
+    Color MyTempColor1;
+
+    float min = 0.6f, max = 1.4f;
+
+    void Start()
+    {
+        StartCoroutine(OnCheck());
+    }
+    IEnumerator OnCheck()
+    {
+        MyTempColor1 = Img.color;
+        yield return new WaitForSeconds(0.1f);
+        if (
+            MyTempColor1.r * max > Img.color.r && MyTempColor1.r * min < Img.color.r ||
+            MyTempColor1.g * max > Img.color.g && MyTempColor1.r * min < Img.color.g ||
+            MyTempColor1.b * max > Img.color.b && MyTempColor1.r * min < Img.color.b)
+        {
+            isOn = false;
+        }
+        else
+        {
+            isOn = true;
+        }
+        StartCoroutine(OnCheck());
+    }
+}
