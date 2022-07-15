@@ -1,0 +1,193 @@
+using System.Collections;
+using System.Collections.Generic;
+using DG.Tweening;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class WebCamTracker : MonoBehaviour
+{
+    WebCamTexture webCamTexture;
+    WebCamDevice webCamDevice;
+    public RawImage rawImage;
+    int width = 1280, height = 720;
+
+    [SerializeField]
+    bool isCamOn;
+    [SerializeField]
+    GameObject Pref;
+
+    List<Color> NowColor;
+
+    [SerializeField] List<PixelHandler> ListGameObj, ListOn;
+    public RectTransform RT_Pos;
+    public Transform Cube;
+    public Slider Slider;
+    public float Value;
+    public Text Sensitivity;
+
+    int skip = 20;
+    Vector2 LastPos;
+    float CutOffMaxPixelCount = 1000;
+
+    void Start()
+    {
+        if (Application.platform == RuntimePlatform.Android) // 만약 기기가 안드 기반이라면 후면카메라를 webCamDevice에 할당한다. 
+            webCamDevice = WebCamTexture.devices[1];
+        else                                                 // 만약 기기가 안드 기반이 아니라면 전면 카메라를 webCamDevice에 할당한다.
+            webCamDevice = WebCamTexture.devices[0];
+        webCamTexture = new WebCamTexture(webCamDevice.name, width, height, 12); //웹캠디바이스에서 받은 영상을 출력할 텍스쳐를 만들어준다. 높이 길이 그리고 프레임 
+        rawImage.texture = webCamTexture; //로우 이미지의 텍스처는 웹캠텍스처다.
+        webCamTexture.Play();       //영상 시작
+        rawImage.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
+        rawImage.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
+        NowColor = new List<Color>();
+        makePixels();
+        Slider.onValueChanged.AddListener(ValueChange);
+        ValueChange(Slider.value);
+    }
+    void ValueChange(float value)
+    {
+        Value = (value * CutOffMaxPixelCount);
+        Value = Mathf.Round(Value);
+        Sensitivity.text = "Cut Off Pixel : " + Value.ToString();
+    }
+    void makePixels()
+    {
+        ListGameObj = new List<PixelHandler>();
+        ListOn = new List<PixelHandler>();
+        for (int y = 0; y < height / skip; y++)
+        {
+            for (int x = 0; x < width / skip; x++)
+            {
+                GameObject go = Instantiate(Pref);
+                go.SetActive(true);
+                go.transform.SetParent(Pref.transform.parent);
+                go.transform.localScale = new Vector3(1f, 1f, 1f);
+                go.transform.localPosition = new Vector2(x * skip - width / 2 + skip - 10, y * skip - height / 2 + 30);
+                go.GetComponent<PixelHandler>().CG.alpha = 0f;
+                ListGameObj.Add(go.GetComponent<PixelHandler>());
+            }
+        }
+        Debug.Log("make ListGameObj");
+    }
+
+    float posX, posY, cubeRotate, amount;
+    // [SerializeField] float smoothSpeed;
+    IEnumerator ComparePixel()
+    {
+        yield return new WaitForSeconds(0.1f);
+
+        NowColor.Clear();//0.1초마다 색깔 배열을 바꾼다 이전색배열과 지금 색배열이 맞이 않는 경우만 찾는다
+        for (int y = 0; y < webCamTexture.height / skip; y++)
+        {
+            for (int x = 0; x < webCamTexture.width / skip; x++)
+            {
+                NowColor.Add(webCamTexture.GetPixel(x * skip, y * skip)); //웹캠텍스처는 픽셀을 가저올 수 있다. 그리고 그 픽셀갓은 color을 할당한다.
+            }
+        }
+
+        ListOn.Clear();
+        for (int i = 0; i < ListGameObj.Count; i++)
+        {
+            ListGameObj[i].Img.color = NowColor[i];
+
+            if (ListGameObj[i].isOn)
+                ListOn.Add(ListGameObj[i]);
+
+            // if (ListGameObj[i].isOn)
+            // {
+            //     ListGameObj[i].RT.DOScale(1f, 0.2f).SetEase(Ease.Linear);
+            //     ListGameObj[i].RT.DOLocalRotate(new Vector3(0, 0, 45), 0.2f).SetEase(Ease.Linear);
+            // }
+            // else
+            // {
+            //     ListGameObj[i].RT.DOScale(0f, 0.2f).SetEase(Ease.Linear);
+            //     ListGameObj[i].RT.DOLocalRotate(new Vector3(0, 0, 0), 0.2f).SetEase(Ease.Linear);
+            // }
+        }
+        if (ListOn.Count > Value)
+        {
+            for (int i = 0; i < ListOn.Count; i++)
+            {
+                posX = posX + ListOn[i].RT.anchoredPosition.x;
+                posY = posY + ListOn[i].RT.anchoredPosition.y;
+            }
+            posX = Mathf.Clamp(posX / ListOn.Count, -width / 2, width / 2);
+            posY = Mathf.Clamp(posY / ListOn.Count, -width / 2, width / 2);
+            amount = Mathf.Clamp(posX / (width / 2), -1, 1);
+            if (!float.IsNaN(posX) && !float.IsNaN(posY)) // single값이 숫자인지 아닌지를 검사 true라면 not-number false라면 number
+                try
+                {
+                    RT_Pos.anchoredPosition = new Vector2(-posX, posY * 0.4f);
+                    // Cube.DORotate(new Vector3(16.1f, 120.8f - cubeRotate*30, 52.8f),0.2f);
+                    Cube.DOLocalRotateQuaternion(Quaternion.Euler(16.1f, 120.8f - amount * 30, 52.8f), 0.1f);
+                }
+                catch { }
+
+            LastPos = new Vector2(-posX, posY);
+        }
+
+        StartCoroutine(ComparePixel());
+    }
+    IEnumerator RedotMove()
+    {
+        yield return new WaitForSeconds(3f);
+
+        ListOn.Clear();
+        for (int i = 0; i < ListGameObj.Count; i++)
+        {
+            ListGameObj[i].Img.color = NowColor[i];
+
+            if (ListGameObj[i].isOn)
+                ListOn.Add(ListGameObj[i]);
+            //------------어느 픽셀이 달라졌는지 보여주는 코드-------------------------------------------------------
+            // if (ListGameObj[i].isOn)
+            // {
+            //     ListGameObj[i].RT.DOScale(1f, 0.2f).SetEase(Ease.Linear);
+            //     ListGameObj[i].RT.DOLocalRotate(new Vector3(0, 0, 45), 0.2f).SetEase(Ease.Linear);
+            // }
+            // else
+            // {
+            //     ListGameObj[i].RT.DOScale(0f, 0.2f).SetEase(Ease.Linear);
+            //     ListGameObj[i].RT.DOLocalRotate(new Vector3(0, 0, 0), 0.2f).SetEase(Ease.Linear);
+            // }
+            //---------------------------------------------------------------------------------------
+        }
+        if (ListOn.Count > Value)
+        {
+            for (int i = 0; i < ListOn.Count; i++)
+            {
+                posX = posX + ListOn[i].RT.anchoredPosition.x;
+                posY = posY + ListOn[i].RT.anchoredPosition.y;
+            }
+            posX = Mathf.Clamp(posX / ListOn.Count, -width / 2, width / 2);
+            posY = Mathf.Clamp(posY / ListOn.Count, -width / 2, width / 2);
+            amount = Mathf.Clamp(posX / (width / 2), -1, 1);
+            if (!float.IsNaN(posX) && !float.IsNaN(posY)) // single값이 숫자인지 아닌지를 검사 true라면 not-number false라면 number
+                try
+                {
+                    RT_Pos.anchoredPosition = new Vector2(-posX, posY * 0.4f);
+                    Cube.DOLocalRotateQuaternion(Quaternion.Euler(16.1f, 120.8f - amount * 30, 52.8f), 0.1f);
+                }
+                catch { }
+
+            LastPos = new Vector2(-posX, posY);
+        }
+
+        StartCoroutine(RedotMove());
+
+    }
+    void Update()
+    {
+        if (webCamTexture.width > 16)
+        {
+            if (!isCamOn)
+            {
+                width = webCamTexture.width;
+                height = webCamTexture.height;
+                isCamOn = true;
+                StartCoroutine("ComparePixel");
+            }
+        }
+    }
+}
