@@ -1,0 +1,95 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.EventSystems;
+using DG.Tweening;
+public class cardSlider : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
+{
+    public RectTransform RT_0, RT_1;
+    public RectTransform RT_Content;
+    public int index;
+    private string direction = "";
+    // Start is called before the first frame update
+    void Start()
+    {
+
+    }
+    public void OnBeginDrag(PointerEventData e)
+    {
+
+    }
+    public void OnDrag(PointerEventData e)
+    {
+        if (RT_Content.anchoredPosition.x < 0)
+        {
+            direction = "L";
+            if (index == 0)
+            {
+                RT_0.anchoredPosition = new Vector2(0, 0);
+                RT_1.anchoredPosition = new Vector2(RT_0.rect.width, 0);
+            }
+            else if (index == 1)
+            {
+                RT_1.anchoredPosition = new Vector2(0, 0);
+                RT_0.anchoredPosition = new Vector2(RT_0.rect.width, 0);
+            }
+        }
+        else
+        {
+            direction = "R";
+            if (index == 0)
+            {
+                RT_0.anchoredPosition = new Vector2(0, 0);
+                RT_1.anchoredPosition = new Vector2(-RT_0.rect.width, 0);
+            }
+            else if (index == 1)
+            {
+                RT_1.anchoredPosition = new Vector2(0, 0);
+                RT_0.anchoredPosition = new Vector2(-RT_0.rect.width, 0);
+            }
+        }
+        RT_Content.anchoredPosition = new Vector2(-(e.pressPosition.x - e.position.x), 0);
+
+
+    }
+    public void OnEndDrag(PointerEventData e)
+    {
+        if (direction == "L")
+        {
+            RT_Content.DOAnchorPosX(-RT_0.rect.width, 0.3f).SetEase(Ease.OutQuart).OnComplete(setContent);
+        }
+        else if (direction == "R")
+        {
+            RT_Content.DOAnchorPosX(RT_0.rect.width, 0.3f).SetEase(Ease.OutQuart).OnComplete(setContent);
+        }
+    }
+    void setContent()
+    {
+        if (index == 0)
+        {
+            index = 1;
+        }
+        else
+        {
+            index = 0;
+        }
+
+        RT_Content.anchoredPosition = Vector2.zero;
+        if (index == 0)
+        {
+            RT_0.anchoredPosition = Vector2.zero;
+            RT_1.anchoredPosition = new Vector2(RT_0.rect.width, 0);
+        }
+        else
+        {
+            RT_1.anchoredPosition = Vector2.zero;
+            RT_0.anchoredPosition = new Vector2(RT_0.rect.width, 0);
+        }
+
+    }
+    // Update is called once per frame
+    void Update()
+    {
+
+    }
+}
