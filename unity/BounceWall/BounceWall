@@ -1,0 +1,39 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class BounceWall : MonoBehaviour
+{
+    float x = 20;
+    float y = 20;
+    [SerializeField] float xSpeed = 1;
+    [SerializeField] float ySpeed = 3.3f;
+    float width = 602;
+    float height = 482;
+    [SerializeField] RectTransform box;
+    void Start()
+    {
+
+    }
+
+    void moveBox()
+    {
+        x = x + xSpeed;
+        y = y + ySpeed;
+        if (x > width || x < 0)
+        {
+            xSpeed = xSpeed * -1;
+        }
+        if (y > height || y < 0)
+        {
+            ySpeed = ySpeed * -1;
+        }
+        box.anchoredPosition = new Vector2(x, y);
+    }
+
+    // Update is called once per frame
+    private void Update()
+    {
+        moveBox();
+    }
+}
