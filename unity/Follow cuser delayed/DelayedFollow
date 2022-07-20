@@ -1,0 +1,19 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+[Serializable]
+public class DelayedFollow
+{
+    // Start is called before the first frame updatebvv
+    public GameObject Go;
+    public float smoothSpeed;
+    public int Idx;
+    public DelayedFollow(GameObject _go,int _idx ,float _speed)
+    {
+        Go = _go;
+        Idx = _idx;
+        smoothSpeed = _speed;
+    }
+}
