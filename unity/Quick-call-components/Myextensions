@@ -1,0 +1,47 @@
+using System.Net.Mime;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+
+public static class MyExtensions
+{
+    public static Image IMG(this GameObject obj)
+    {
+        return obj.GetComponent<Image>();
+    }
+    public static CanvasGroup CG(this GameObject obj)
+    {
+        var cg = obj.GetComponent<CanvasGroup>();
+        if (cg == null)
+            cg = obj.AddComponent<CanvasGroup>();
+        return cg;
+    }
+    public static Text TXT(this GameObject obj)
+    {
+        var txt = obj.GetComponent<Text>();
+        if (txt == null)
+            txt = obj.AddComponent<Text>();
+        return txt;
+    }
+    public static Button BTN(this GameObject obj)
+    {
+        var btn = obj.GetComponent<Button>();
+        if (btn == null)
+            btn = obj.AddComponent<Button>();
+        return btn;
+    }
+    public static RectTransform RT(this GameObject obj)
+    {
+        var rt = obj.GetComponent<RectTransform>();
+        return rt;
+    }
+    public static UniformModifier Raius(this GameObject obj)
+    {
+        return obj.GetComponent<UniformModifier>();
+    }
+    public static Mask Mask(this GameObject obj)
+    {
+        return obj.GetComponent<Mask>();
+    }
+}
