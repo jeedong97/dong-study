@@ -1,0 +1,92 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+ 
+public class BezierFollow : MonoBehaviour
+{
+   [SerializeField]
+   public List<Transform> routes;
+   [Tooltip("Routes라는 게임 오브젝트 안에 있는 지점들을 찾기위한 넘버링")] public int routeToGo;
+   [Tooltip("0~1초까지의 시간의 경과를 나타내주는 변수")] public float tParam;
+   [Tooltip("경로를 따라 이동할 오브젝트의 위치를 지정해준다")] public Vector2 objPosition;
+   [Tooltip("tParam에 수치를 곱해 오브젝트의 이동 속도를 증가시켜준다")] public float speedModifier;
+   [Tooltip("")] public bool coroutineAllowed;
+   public bool Stop; // 스탑을 하기 위해서는 세곳을 막아야 한다. update, 코루틴 안쪽에 while
+   void Start()
+   {
+       //처음 시작은 0번째루트 부터 시작하고
+       //시간도 0부터 시작하며
+       //속도는 0.5정도로 정하고
+       //코루틴이 실행될 수 있게 true값을 가지게 한다.
+       routeToGo = 0;
+       tParam = 0f;
+       speedModifier = 0.5f;
+       coroutineAllowed = true;
+   }
+   void Update()
+   {
+       //명제값이 참으로 설정되었기 때문에 바로 코루틴이 시작이 된다.
+       if (coroutineAllowed)
+       {
+           if (!Stop)
+           {
+               StartCoroutine(GoByTheRoute(routeToGo));
+           }
+       }
+   }
+   //대입된 수치에 따라 ~번째 루트를 실행시키는 코루틴이다.
+ 
+   Vector2 a0, a1, a2 , l0, l1;
+   private void OnDrawGizmos()
+   {
+       Gizmos.DrawLine(a0, a1);
+       Gizmos.DrawLine(a1, a2);
+       Gizmos.DrawLine(l0, l1);
+   }
+   public IEnumerator GoByTheRoute(int routeNumber)
+   {
+       // 일단 명제값을 거짓으로 만들어서 업데이트에서 한번 막아준다.
+       coroutineAllowed = false;
+       // ~번째 루트안에 있는 4가지의 점들을 p0,1,2,3 으로 만들어 준다.
+       Vector2 p0 = routes[routeNumber].GetChild(0).position;
+       Vector2 p1 = routes[routeNumber].GetChild(1).position;
+       Vector2 p2 = routes[routeNumber].GetChild(2).position;
+       Vector2 p3 = routes[routeNumber].GetChild(3).position;
+ 
+       while (tParam < 1)
+       {//시간의 경과에 따라 tParam을 증가 시켜준다 (speedModifer에 수치를 바꿔서 tParam까지 도달하는 시간을 다르게 할 수도 있다.)
+           tParam += Time.deltaTime * speedModifier;
+           //--------------------------Vector.lerp를 이용한 공식---------------------------------
+           Vector2 q0 = Vector2.Lerp(p0, p1, tParam);
+           Vector2 q1 = Vector2.Lerp(p1, p2, tParam);
+           Vector2 q2 = Vector2.Lerp(p2, p3, tParam);
+           a0 = q0;
+           a1 = q1;
+           a2 = q2;
+           Vector2 r0 = Vector2.Lerp(q0, q1, tParam);
+           Vector2 r1 = Vector2.Lerp(q1, q2, tParam);
+           l0 = r0;
+           l1 = r1;
+           objPosition = Vector2.Lerp(r0, r1, tParam);
+           //  this.transform.position의 위치를 objPpostion으로 정해준다.
+ 
+           transform.position = objPosition;
+           yield return new WaitForEndOfFrame(); // update와 같은 역할을 할 수가 있다.1프레임이 끝나면 다시 시작한다.
+       }
+       //tparam은 0에서 다시 시작하게 하고
+       //routetogo는 1이 증가하게 된다.
+       //만약 넘버링이 자신의 길이보다 길어진다면
+       //0으로 돌아가게 한다.
+       tParam = 0f;
+       if (!Stop)
+       {
+           routeToGo += 1;
+           coroutineAllowed = true;
+       }
+       if (routeToGo > routes.Count - 1)
+           routeToGo = 0;
+ 
+       Stop = false;
+   }
+}
