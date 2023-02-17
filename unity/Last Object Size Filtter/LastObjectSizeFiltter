@@ -1,0 +1,46 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public enum AxisSizeFitterType
+{
+    Vertical,
+    Horizontal,
+}
+
+[ExecuteInEditMode]
+public class LastObjectSizeFitter : MonoBehaviour
+{
+    [SerializeField] AxisSizeFitterType type;
+    RectTransform rectTransform;
+    [SerializeField] RectTransform lastChildRectTransform;
+
+    void Start()
+    {
+
+    }
+
+    void Update()
+    {
+        if (!rectTransform)
+            rectTransform = this.GetComponent<RectTransform>();
+        if (!lastChildRectTransform)
+        {
+            var children = rectTransform.GetComponentsInChildren<RectTransform>();
+            lastChildRectTransform = children[children.Length - 1];
+        }
+
+        if (type == AxisSizeFitterType.Vertical)
+        {
+            var height = Mathf.Abs(lastChildRectTransform.anchoredPosition.y) + lastChildRectTransform.rect.height;
+            if (rectTransform.rect.height != height)
+                rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
+        }
+        else
+        {
+            var width = Mathf.Abs(lastChildRectTransform.anchoredPosition.x) + lastChildRectTransform.rect.width;
+            if (rectTransform.rect.width != width)
+                rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
+        }
+    }
+}
