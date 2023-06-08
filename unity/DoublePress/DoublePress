@@ -1,0 +1,64 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.EventSystems;
+
+public class DoublePress : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
+{
+    bool isReadyDoublePress;
+    public UnityEvent Long_Press, Double_Press;
+
+    string state;
+
+    private void Start()
+    {
+        state = "";
+    }
+    public void OnPointerDown(PointerEventData e)
+    {
+        if (isReadyDoublePress)
+        {
+            DoublePressEvent();
+            CancelInvoke("longPressEvent");
+        }
+        else
+        {
+            isReadyDoublePress = true;
+            InvokeStarter("CancelDoublePress", 0.3f);
+            InvokeStarter("longPressEvent", 0.8f);
+        }
+    }
+    public void OnDrag(PointerEventData e)
+    {
+    }
+    public void OnPointerUp(PointerEventData e)
+    {
+        CancelInvoke("longPressEvent");
+        state = "";
+    }
+
+    void longPressEvent()
+    {
+        Long_Press.Invoke();
+        Debug.Log("longpress");
+        state = "LongPress";
+    }
+
+    void CancelDoublePress()
+    {
+        isReadyDoublePress = false;
+    }
+    void DoublePressEvent()
+    {
+        Double_Press.Invoke();
+        Debug.Log("doublePress");
+        state = "DoublePress";
+    }
+
+    void InvokeStarter(string _function, float _time) //인보크 취소 시작 둘다 확실하게 넣어주는 메소드
+    {
+        CancelInvoke(_function);
+        Invoke(_function, _time);
+    }
+}
