@@ -1,65 +1,40 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using DG.Tweening;
 using UnityEngine.EventSystems;
 using UnityEngine.Events;
-using UnityEngine.UI;
 
-public class LongPress : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerUpHandler
+public class LongPress : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
 {
-    // public CardDragHandler CD;
-    // public LongPressEditHandler LPE;
-    public UnityEvent OnClick, OnLongPress, EndLongPress;
-    [SerializeField] ScrollRect scl;
+    public UnityEvent OnClick, OnLongPressDrag, OnLongPress, EndLongPress;
     bool isLongPressed;
 
-    private void Awake() //먼저 이벤트들을 만들어 준다 우린 button 안쓸꺼임 ㅇㅇ
+    private void Awake() //먼저 이벤트들을 만들어 준다 우린 button 안쓸꺼임
     {
         OnClick = new UnityEvent();
         OnLongPress = new UnityEvent();
         EndLongPress = new UnityEvent();
-    }
-    void Start()
-    {
-
+        OnLongPressDrag = new UnityEvent();
     }
     public void OnPointerDown(PointerEventData e)
     {
         CancelInvoke("startEditmode");
         Invoke("startEditmode", 0.4f); //카드에딧모드를 여기서 시작하려고 준비
     }
-    //public void OnBeginDrag(PointerEventData e)
-    //{
-        //if (!isLongPressed) //원래는 카드드래그에서 막으려는거 여기서 막아버림
-        //{
-         //   CD.OnBeginDrag(e);
-         //   scl.OnBeginDrag(e);
-        //}
-    //}
-    //public void OnDrag(PointerEventData e)
-    //{
-      //  if (!isLongPressed)
-        //{
-         //   CD.OnDrag(e);
-          //  scl.OnDrag(e);
-        //}
-        //else
-          //  LPE.OnDrag(e);
-        //if (Mathf.Abs(e.pressPosition.x - e.position.x) > 10 || Mathf.Abs(e.pressPosition.y - e.position.y) > 10)
-        //{
-        //    CancelInvoke("startEditmode"); //근데 일정영역이상 움직이면 취소되버림
-      //  }
-    //}
-    //public void OnEndDrag(PointerEventData e)
-    //{
-     //   if (!isLongPressed)
-      //  {
-       //     CD.OnEndDrag(e);
-        //    scl.OnEndDrag(e);
-        //}
-    //}
+    public void OnDrag(PointerEventData e)
+    {
+        if (!isLongPressed)
+        {
+            if (Mathf.Abs(e.pressPosition.x - e.position.x) > 10 || Mathf.Abs(e.pressPosition.y - e.position.y) > 10)
+            {
+                CancelInvoke("startEditmode"); //근데 일정영역이상 움직이면 취소되버림
+            }
+        }
+        else
+        {
+            OnLongPressDrag.Invoke();
+        }
+    }
     public void OnPointerUp(PointerEventData e)
     {
         if (!isLongPressed)
@@ -77,21 +52,12 @@ public class LongPress : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, 
     }
     void startEditmode() //에딧모드 시작하기 하면서 롱프레스 이벤트 쏴주는 역할
     {
-        if (CD.Isopen)
-        {
-//            CD.SR_Container.enabled = false;
-  //          isLongPressed = true;
-    //        OnLongPress.Invoke();
-        }
+        isLongPressed = true;
+        OnLongPress.Invoke();
     }
     void endEditMode() // 롱프레스 끝났다는걸 쏴주는 역할
     {
-    //    CD.SR_Container.enabled = true;
-      //  isLongPressed = false;
-        //EndLongPress.Invoke();
-    }
-    void Update()
-    {
-
+        isLongPressed = false;
+        EndLongPress.Invoke();
     }
 }
