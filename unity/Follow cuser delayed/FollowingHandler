@@ -1,11 +1,27 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[Serializable]
+public class DelayedFollow
+{
+    // Start is called before the first frame updatebvv
+    public GameObject Go;
+    public float smoothSpeed;
+    public int Idx;
+    public DelayedFollow(GameObject _go, int _idx, float _speed)
+    {
+        Go = _go;
+        Idx = _idx;
+        smoothSpeed = _speed;
+    }
+}
 public class FollowingHandler : MonoBehaviour
 {
     [SerializeField] List<DelayedFollow> list_Follow;
     [SerializeField] List<GameObject> list_GameObject;
+    int myNum;
     void Start()
     {
         for (int i = 0; i < list_GameObject.Count; i++)
@@ -30,7 +46,7 @@ public class FollowingHandler : MonoBehaviour
         for (int i = 0; i < list_Follow.Count; i++)
         {
             DelayedFollow box = list_Follow[i];
-            box.Go.transform.position = Vector3.MoveTowards(box.Go.transform.position, transPos, 10 + 10 * i);
+            box.Go.transform.position = Vector3.MoveTowards(box.Go.transform.position, transPos, box.smoothSpeed);
         }
     }
     void FollowType3(Vector3 _position)
@@ -53,10 +69,47 @@ public class FollowingHandler : MonoBehaviour
     }
     // Update is called once per frame
 
+
     void Update()
     {
         //여기에 followType 원하는걸로 넣어주면 댐
         Vector3 desiredPosition = Input.mousePosition;
-        FollowType3(desiredPosition);
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            for (int i = 0; i < list_GameObject.Count; i++)
+            {
+                int num = i;
+                float speed = 0.1f - 0.09f / (list_GameObject.Count - 1) * num;
+
+                list_Follow[i].smoothSpeed = speed;
+            }
+            myNum = 1;
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha2))
+        {
+            for (int i = 0; i < list_GameObject.Count; i++)
+            {
+                int num = i;
+                float speed = 5f - 3f / (list_GameObject.Count - 1) * num;
+                list_Follow[i].smoothSpeed = speed;
+
+            }
+            myNum = 2;
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha3))
+        {
+            for (int i = 0; i < list_GameObject.Count; i++)
+            {
+                int num = i;
+                float speed = 0.3f - 0.2f / (list_GameObject.Count - 1) * num;
+                list_Follow[i].smoothSpeed = speed;
+            }
+            myNum = 3;
+        }
+
+        if (myNum == 1) FollowType1(desiredPosition);
+        if (myNum == 2) FollowType2(desiredPosition);
+        if (myNum == 3) FollowType3(desiredPosition);
+
     }
 }
