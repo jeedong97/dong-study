@@ -4,17 +4,18 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Events;
 
-public class LongPress : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
+[System.Serializable]
+public class PointerEvent : UnityEvent<PointerEventData>{}
+public class TouchManager : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
 {
-    public UnityEvent OnClick, OnLongPressDrag, OnLongPress, EndLongPress;
+    public UnityEvent OnClick, OnLongPress;
+    public PointerEvent OnLongPressDrag, EndLongPress;
     bool isLongPressed;
 
     private void Awake() //먼저 이벤트들을 만들어 준다 우린 button 안쓸꺼임
     {
         OnClick = new UnityEvent();
         OnLongPress = new UnityEvent();
-        EndLongPress = new UnityEvent();
-        OnLongPressDrag = new UnityEvent();
     }
     public void OnPointerDown(PointerEventData e)
     {
@@ -32,7 +33,7 @@ public class LongPress : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoin
         }
         else
         {
-            OnLongPressDrag.Invoke();
+            OnLongPressDrag.Invoke(e);
         }
     }
     public void OnPointerUp(PointerEventData e)
@@ -47,7 +48,7 @@ public class LongPress : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoin
         }
         if (isLongPressed)
         {
-            endEditMode();
+            endEditMode(e);
         }
     }
     void startEditmode() //에딧모드 시작하기 하면서 롱프레스 이벤트 쏴주는 역할
@@ -55,9 +56,9 @@ public class LongPress : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoin
         isLongPressed = true;
         OnLongPress.Invoke();
     }
-    void endEditMode() // 롱프레스 끝났다는걸 쏴주는 역할
+    void endEditMode(PointerEventData e) // 롱프레스 끝났다는걸 쏴주는 역할
     {
         isLongPressed = false;
-        EndLongPress.Invoke();
+        EndLongPress.Invoke(e);
     }
 }
