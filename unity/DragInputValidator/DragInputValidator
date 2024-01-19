@@ -1,0 +1,50 @@
+using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.EventSystems;
+
+public class DragInputValidator : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
+{
+    private Vector2 initialPointerPosition; // 포인터의 초기 위치를 저장합니다.
+    RectTransform RT;
+    bool isContainingScreenPoint;
+    private void Awake()
+    {
+        RT = GetComponent<RectTransform>();
+    }
+
+    public void OnPointerDown(PointerEventData e)
+    {
+        // 포인터가 다운될 때 초기 위치를 저장합니다.
+        isContainingScreenPoint = true;
+        Debug.Log("이미지안에 들어왔습니다");
+    }
+
+    public void OnDrag(PointerEventData e)
+    {
+        if (!RectTransformUtility.RectangleContainsScreenPoint(RT, e.position))
+        {
+            // 이미지를 벗어났을 때 처리할 작업을 수행합니다.
+            if (isContainingScreenPoint)
+            {
+                Debug.Log("이미지를 벗어났습니다.");
+                isContainingScreenPoint = false;
+            }
+        }
+        else
+        {
+            if (!isContainingScreenPoint)
+            {
+                Debug.Log("이미지안에 들어왔습니다");
+                isContainingScreenPoint = true;
+            }
+        }
+    }
+    public void OnPointerUp(PointerEventData e)
+    {
+        if (isContainingScreenPoint)
+        {
+            Debug.Log("이미지를 벗어났습니다.");
+            isContainingScreenPoint = false;
+        }
+    }
+}
