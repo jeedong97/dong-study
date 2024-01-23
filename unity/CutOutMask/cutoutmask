@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Rendering;
 
-public class cutoutmask : Image
+public class CutOutMask : Image
 {
     public override Material materialForRendering
     {
